@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桃園國際民俗舞社 - 舞蹈許願清單</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        h1 { margin-bottom: 30px; border-bottom: 2px solid #3498db; padding-bottom: 10px;}
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .ranking-section {
+            margin-top: 40px;
+            border-top: 2px dashed #ccc;
+            padding-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #2c3e50;
+        }
+        tr:nth-child(even) { background-color: #fafafa; }
+        .rank-num {
+            font-weight: bold;
+            color: #e74c3c;
+            width: 50px;
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d;">舞蹈許願清單</span></h1>
+    
+    <!-- 許願表單 -->
+    <form id="wishForm">
+        <div class="form-group">
+            <label for="name">您的姓名：</label>
+            <input type="text" id="name" required placeholder="請輸入姓名或暱稱">
+        </div>
+        <div class="form-group">
+            <label for="wantToLearn">想學的舞：</label>
+            <input type="text" id="wantToLearn" required placeholder="請輸入完整的舞蹈名稱">
+        </div>
+        <div class="form-group">
+            <label for="wantToTeach">想教的舞（選填）：</label>
+            <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
+        </div>
+        <button type="submit" id="submitBtn">送出願望</button>
+    </form>
+
+    <!-- 排行榜區塊 -->
+    <div class="ranking-section">
+        <h2>🔥 最想學舞蹈排行榜</h2>
+        <div id="loadingText" class="loading">排行榜資料載入中...</div>
+        <table id="rankingTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th class="rank-num">名次</th>
+                    <th>舞蹈名稱</th>
+                    <th>想學人數</th>
+                </tr>
+            </thead>
+            <tbody id="rankingBody">
+                <!-- 資料會由 JavaScript 自動生成 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // ⚠️ 請在此處替換成您在 Google Apps Script 部署得到的網頁應用程式 URL
+    const GAS_URL = "YOUR_GAS_WEB_APP_URL";
+
+    // 網頁載入完成後，自動讀取排行榜
+    document.addEventListener("DOMContentLoaded", fetchRanking);
+
+    // 處理表單提交事件
+    document.getElementById("wishForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+        submitBtn.innerText = "資料送出中...";
+
+        const formData = {
+            name: document.getElementById("name").value,
+            wantToLearn: document.getElementById("wantToLearn").value,
+            wantToTeach: document.getElementById("wantToTeach").value
+        };
+
+        // 以 POST 方式傳送資料至 GAS
+        fetch(GAS_URL, {
+            method: "POST",
+            method: "POST",
+            mode: "no-cors", // 避免跨網域 CORS 問題
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(() => {
+            alert("許願成功！感謝您的參與！");
+            document.getElementById("wishForm").reset();
+            submitBtn.disabled = false;
+            submitBtn.innerText = "送出願望";
+            // 重新讀取排行榜
+            fetchRanking();
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("送出失敗，請稍後再試。");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "送出願望";
+        });
+    });
+
+    // 獲取並更新排行榜
+    function fetchRanking() {
+        const loadingText = document.getElementById("loadingText");
+        const rankingTable = document.getElementById("rankingTable");
+        const rankingBody = document.getElementById("rankingBody");
+
+        loadingText.style.display = "block";
+        rankingTable.style.display = "none";
+
+        // 以 GET 方式向 GAS 請求排行榜 JSON 資料
+        fetch(GAS_URL)
+        .then(response => response.json())
+        .then(data => {
+            rankingBody.innerHTML = "";
+            
+            if (data.length === 0) {
+                loadingText.innerText = "目前尚無許願資料，快來當第一個吧！";
+                return;
+            }
+
+            // 動態產生表格內容
+            data.forEach((item, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td class="rank-num">${index + 1}</td>
+                    <td>${item.dance}</td>
+                    <td>${item.count} 票</td>
+                `;
+                rankingBody.appendChild(row);
+            });
+
+            loadingText.style.display = "none";
+            rankingTable.style.display = "table";
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            loadingText.innerText = "無法載入排行榜資料，請重新整理網頁。";
+        });
+    }
+</script>
+</body>
+</html>
