@@ -125,10 +125,30 @@
             width: 50px;
         }
         
-        /* 💡 新增：當舞名同時有人想學且想教時的亮紅色樣式 */
+        /* 💡 修正 1：設定表格欄位防止文字在不適當的地方斷行 */
+        .dance-name-td {
+            white-space: nowrap; /* 💡 核心修正：強制整行文字包含標籤不換行 */
+            overflow: hidden;
+            text-overflow: ellipsis; /* 如果手機真的很小，字體過長會顯示...，而非斷行 */
+        }
+
         .match-dance {
             color: #e74c3c;
             font-weight: bold;
+        }
+
+        /* 💡 修正 2：優化成標籤樣式，並緊跟在文字後方 */
+        .teach-badge {
+            display: inline-block;
+            background-color: #ffebee;
+            color: #c62828;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            font-weight: bold;
+            border: 1px solid #ffcdd2;
+            vertical-align: middle;
         }
 
         .loading {
@@ -156,7 +176,7 @@
                 <input type="text" id="wantToLearn" required placeholder="請輸入完整的舞蹈名稱">
             </div>
             <div class="form-group">
-                <label for="wantToTeach">想教的舞（選填）：</label>
+                <label for="wantToTeach">想教 the 舞（選填）：</label>
                 <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
             </div>
             <button type="submit" id="submitBtn" class="submit-btn">送出願望</button>
@@ -165,14 +185,14 @@
 
     <!-- 排行榜區塊 -->
     <div class="ranking-section">
-        <h2>🔥 許願排行榜</h2>
+        <h2>🔥 熱門學舞排行榜</h2>
         <div id="loadingText" class="loading">排行榜資料載入中...</div>
         <table id="rankingTable" style="display: none;">
             <thead>
                 <tr>
                     <th class="rank-num">名次</th>
                     <th>舞蹈名稱</th>
-                    <th>想學人數</th>
+                    <th style="width: 80px; text-align: right;">想學人數</th>
                 </tr>
             </thead>
             <tbody id="rankingBody">
@@ -183,7 +203,6 @@
 </div>
 
 <script>
-    // ⚠️ 請記得檢查並更換成您最新的 GAS 網頁應用程式 URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyAZO1xN-SEOptG9TBqPNcWDCXXFwTBMu36SH0F12g4l4i299vhkxDYjIw13m8KftwfKQ/exec";
 
     document.addEventListener("DOMContentLoaded", fetchRanking);
@@ -227,19 +246,16 @@
         .then(() => {
             alert("許願成功！感謝您的參與！");
             
-            // 💡 修正 1：不再使用 reset() 整體清空，而是精準清空「想學」與「想教」，從而保留「姓名」
             document.getElementById("wantToLearn").value = "";
             document.getElementById("wantToTeach").value = "";
             
             submitBtn.disabled = false;
             submitBtn.innerText = "送出願望";
             
-            // 送出成功後收合表單
             formContainer.classList.remove("open");
             toggleFormBtn.innerText = "🎋 我要許願";
             toggleFormBtn.style.backgroundColor = "#2e7d32";
 
-            // 重新讀取排行榜
             fetchRanking();
         })
         .catch(error => {
@@ -269,18 +285,18 @@
                 return;
             }
 
-            // 動態產生表格內容
             data.forEach((item, index) => {
                 const row = document.createElement("tr");
                 
-                // 💡 修正 2：根據後端比對傳回的 isMatch 結果，決定舞名是否套用 .match-dance (變紅色)
-                let danceClass = item.isMatch ? "class=\"match-dance\"" : "";
-                let matchMark = item.isMatch ? " 🌟 (有人可教!)" : "";
+                let danceClass = item.isMatch ? "match-dance" : "";
+                // 💡 修正 3：改用精緻的小標籤包覆文字，精簡手機寬度
+                let matchMark = item.isMatch ? '<span class="teach-badge">有人可教</span>' : '';
 
+                // 💡 修正 4：為 <td> 加上 dance-name-td 的類別
                 row.innerHTML = `
                     <td class="rank-num">${index + 1}</td>
-                    <td ${danceClass}>${item.dance}${matchMark}</td>
-                    <td>${item.count} 票</td>
+                    <td class="dance-name-td ${danceClass}">${item.dance}${matchMark}</td>
+                    <td style="text-align: right;">${item.count} 票</td>
                 `;
                 rankingBody.appendChild(row);
             });
