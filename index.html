@@ -107,21 +107,40 @@
             border-top: 2px dashed #ccc;
             padding-top: 20px;
         }
+
+        /* 💡 新增：表格外部的固定高度與滑順捲動容器 */
+        .ranking-scroll-container {
+            max-height: 320px; /* 💡 預設高度，您未來可以自由調整 */
+            overflow-y: auto;   /* 縱向超出時自動觸發捲動 */
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            -webkit-overflow-scrolling: touch; /* 讓 iOS 手機滑動更流暢 */
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 0; /* 貼緊容器頂部 */
         }
+        
         th, td {
-            padding: 12px 6px; /* 💡 稍微壓緊手機版的左右內襯，擠出更多寬度 */
+            padding: 12px 6px; 
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
+        
+        /* 💡 新增：表格標題列吸頂（Sticky）防護機制，向下捲動時標題不會消失 */
         th {
             background-color: #f2f2f2;
             color: #2c3e50;
             font-size: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: inset 0 -1px 0 #ddd; /* 防止滾動時邊框被背景吃掉 */
         }
+        
         tr:nth-child(even) { background-color: #fafafa; }
         
         .rank-num {
@@ -131,7 +150,6 @@
             white-space: nowrap;
         }
         
-        /* 💡 新增：針對長標題儲存格做寬度鎖定與微調字型，防止手機端換行 */
         .dance-title-th {
             white-space: nowrap; 
         }
@@ -149,7 +167,7 @@
         .vote-count {
             text-align: right;
             white-space: nowrap; 
-            width: 60px; /* 💡 優化：縮小寬度，將更多空間讓給中間的舞名標題 */
+            width: 60px; 
             font-weight: bold;
         }
 
@@ -157,18 +175,18 @@
             text-align: center;
             color: #7f8c8d;
             font-style: italic;
+            padding: 20px;
         }
 
-        /* 💡 核心修正：利用媒體查詢（Media Query），當偵測到是手機小螢幕時，自動微調字體 */
         @media screen and (max-width: 480px) {
             body {
-                padding: 10px; /* 減少網頁外圍留白 */
+                padding: 10px; 
             }
             .container {
-                padding: 20px 15px; /* 擴大手機版內部可用寬度 */
+                padding: 20px 15px; 
             }
             th {
-                font-size: 12.5px; /* 💡 關鍵：手機版標題稍微縮小，確保 13 個字完全不換行擠壓 */
+                font-size: 12.5px; 
             }
             td {
                 font-size: 14.5px;
@@ -203,25 +221,29 @@
 
     <!-- 排行榜區塊 -->
     <div class="ranking-section">
-        <h2>🔥 許願排行榜</h2>
+        <h2>🔥 熱門學舞排行榜</h2>
         <div id="loadingText" class="loading">排行榜資料載入中...</div>
-        <table id="rankingTable" style="display: none;">
-            <thead>
-                <tr>
-                    <th class="rank-num">名次</th>
-                    <!-- 💡 修正：加上 dance-title-th 類別，強迫不換行 -->
-                    <th class="dance-title-th">舞名(紅字表示許願成真)</th>
-                    <th class="vote-count">熱度</th>
-                </tr>
-            </thead>
-            <tbody id="rankingBody">
-                <!-- 資料會由 JavaScript 自動生成 -->
-            </tbody>
-        </table>
+        
+        <!-- 💡 新增：獨立捲動的外層圖塊包覆 -->
+        <div id="scrollContainer" class="ranking-scroll-container" style="display: none;">
+            <table id="rankingTable">
+                <thead>
+                    <tr>
+                        <th class="rank-num">名次</th>
+                        <th class="dance-title-th">舞名(紅字表示許願成真)</th>
+                        <th class="vote-count">熱度</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingBody">
+                    <!-- 資料會由 JavaScript 自動生成 -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
+    // ⚠️ 請務必將此處替換成您在 Google Apps Script 部署得到的「網頁應用程式 URL」！
     const GAS_URL = "https://script.google.com/macros/s/AKfycbx098y0AkfyEQvaKKNCjsPek2J9nOa1JgJMbb3_aphGxl_jxi_i2ArVp7l-4Qo7HpkYAA/exec";
 
     document.addEventListener("DOMContentLoaded", fetchRanking);
@@ -240,7 +262,6 @@
         }
     });
 
-    // 處理表單提交事件
     document.getElementById("wishForm").addEventListener("submit", function(e) {
         e.preventDefault();
         
@@ -293,14 +314,13 @@
         });
     });
 
-    // 獲取並更新排行榜
     function fetchRanking() {
         const loadingText = document.getElementById("loadingText");
-        const rankingTable = document.getElementById("rankingTable");
+        const scrollContainer = document.getElementById("scrollContainer"); 
         const rankingBody = document.getElementById("rankingBody");
 
         loadingText.style.display = "block";
-        rankingTable.style.display = "none";
+        scrollContainer.style.display = "none"; 
 
         fetch(GAS_URL)
         .then(response => response.json())
@@ -312,22 +332,21 @@
                 return;
             }
 
+            // 💡 修正重點：補回 <td> 標籤，並套用手機防跑版類別（dance-name-cell 與 vote-count）
             data.forEach((item, index) => {
                 const row = document.createElement("tr");
+                let danceClass = item.isMatch ? "match-dance" : "";
                 
-                let danceClass = item.isMatch ? "class=\"match-dance\"" : "";
-
-                // 💡 修正：已將原本舞名前面的 💃 貼圖移除，改為純文字
                 row.innerHTML = `
                     <td class="rank-num">${index + 1}</td>
-                    <td ${danceClass}>${item.dance}</td>
-                    <td style="text-align: right;">${item.count} 票</td>
+                    <td class="dance-name-cell ${danceClass}">${item.dance}</td>
+                    <td class="vote-count">${item.count} 票</td>
                 `;
                 rankingBody.appendChild(row);
             });
 
             loadingText.style.display = "none";
-            rankingTable.style.display = "table";
+            scrollContainer.style.display = "block"; 
         })
         .catch(error => {
             console.error("Error:", error);
@@ -335,5 +354,3 @@
         });
     }
 </script>
-</body>
-</html>
