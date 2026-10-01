@@ -5,243 +5,154 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>桃園國際民俗舞社 - 舞蹈許願樹</title>
     <style>
-        :root {
-            --primary-color: #2e7d32; /* 深翠綠：象徵民俗舞的自然與傳統 */
-            --accent-color: #d84315;  /* 楓葉紅：慶典與熱情 */
-            --gold-color: #f57c00;    /* 大地黃：陽光與心願 */
-            --bg-color: #fdfbf7;      /* 溫潤的米白紙張質感 */
-        }
-
         body {
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(var(--primary-color) 0.5px, transparent 0.5px), radial-gradient(var(--primary-color) 0.5px, var(--bg-color) 0.5px);
-            background-size: 40px 40px;
-            background-position: 0 0, 20px 20px;
-            opacity: 0.95; /* 微妙的民俗風點綴背景 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
+            background-color: #fcfaf2; /* 溫潤的暖米色背景 */
             margin: 0;
-            padding: 40px 20px;
+            padding: 15px; /* 縮小邊距以符合手機版 */
             color: #3e2723;
         }
-
         .container {
-            max-width: 650px;
+            max-width: 600px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px 35px;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(46, 125, 50, 0.15);
-            border: 3px solid #e0d4be;
-            position: relative;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.1);
+            border-top: 6px solid #2e7d32; /* 頂部民俗翠綠裝飾條 */
+            box-sizing: border-box;
         }
-
-        /* 頂部裝飾：民俗舞蹈與許願樹意象 */
         .header-banner {
             text-align: center;
-            margin-bottom: 35px;
-            position: relative;
+            margin-bottom: 25px;
         }
-
-        /* 模擬民俗舞拉手旋轉的圓環或樹葉剪影視覺 */
         .header-icon {
-            font-size: 50px;
-            margin-bottom: 10px;
-            animation: float 3s ease-in-out infinite;
+            font-size: 40px;
+            margin-bottom: 8px;
         }
-
         h1 {
-            font-size: 28px;
-            color: var(--primary-color);
-            margin: 0 0 10px 0;
-            letter-spacing: 2px;
-            font-weight: 800;
-            text-shadow: 1px 1px 0px #fff, 2px 2px 0px #e0d4be;
-        }
-
-        h1 span {
-            font-size: 16px;
-            display: block;
-            color: var(--accent-color);
-            margin-top: 5px;
-            font-weight: bold;
-            letter-spacing: 4px;
-        }
-
-        /* 許願箋（祈願卡）風格表單 */
-        .wish-card {
-            background: #fff8e1; /* 輕微偏黃的祈願紙質感知 */
-            border-left: 8px solid var(--accent-color);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .wish-card::after {
-            content: '🏮'; /* 點綴民俗慶典燈籠 */
-            position: absolute;
-            top: -15px;
-            right: 20px;
             font-size: 24px;
+            color: #2e7d32; /* 深翠綠 */
+            margin: 0;
+            font-weight: bold;
         }
-
+        h1 span {
+            font-size: 15px;
+            display: block;
+            color: #d84315; /* 慶典橘紅 */
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
         .form-group {
-            margin-bottom: 22px;
+            margin-bottom: 18px;
         }
-
         label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: bold;
             color: #5d4037;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 12px 15px;
-            box-sizing: border-box;
-            border: 2px solid #d7ccc8;
-            border-radius: 10px;
-            font-size: 16px;
-            background-color: #fff;
-            color: #3e2723;
-            transition: all 0.3s ease;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
-            outline: none;
-        }
-
-        /* 具備民俗躍動感的按鈕 */
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, var(--primary-color), #1b5e20);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
-            background: linear-gradient(135deg, #388e3c, var(--primary-color));
-        }
-
-        button:active {
-            transform: translateY(1px);
-        }
-
-        /* 排行榜區塊：慶典佈告欄風格 */
-        .ranking-section {
-            border-top: 3px dashed #c2b296;
-            padding-top: 30px;
-        }
-
-        h2 {
-            text-align: center;
-            color: var(--primary-color);
-            font-size: 22px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px; /* 讓每一列分開，像一片片掛上去的木牌 */
-            margin-top: 15px;
-        }
-
-        th {
-            padding: 12px;
-            color: #795548;
-            font-weight: bold;
-            text-align: left;
-            border-bottom: 2px solid #d7ccc8;
             font-size: 15px;
         }
-
-        td {
-            padding: 16px 12px;
-            background: #ffffff;
-            border: 1px solid #efebe9;
-            transition: transform 0.2s;
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #cccccc;
+            border-radius: 6px;
+            font-size: 16px; /* 防止 iOS 輸入時畫面自動放大 */
+            background-color: #fff;
+            color: #333;
         }
-
-        tr:hover td {
-            transform: scale(1.01);
-            border-color: var(--gold-color);
+        input[type="text"]:focus {
+            border-color: #2e7d32;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
         }
-
-        /* 圓角邊框處理 */
-        td:first-child { border-radius: 10px 0 0 10px; border-right: none; }
-        td:nth-child(2) { border-left: none; border-right: none; font-weight: 600;}
-        td:last-child { border-radius: 0 10px 10px 0; border-left: none; text-align: right; font-weight: bold; color: var(--accent-color);}
-
-        /* 慶典徽章名次樣式 */
-        .rank-badge {
-            display: inline-block;
-            width: 28px;
-            height: 28px;
-            line-box: 28px;
-            text-align: center;
-            border-radius: 50%;
-            font-weight: bold;
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #2e7d32;
             color: white;
-            line-height: 28px;
-            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            letter-spacing: 1px;
         }
-        .rank-1 { background-color: #ffb300; box-shadow: 0 2px 5px rgba(255,179,0,0.4); } /* 金 */
-        .rank-2 { background-color: #b0bec5; box-shadow: 0 2px 5px rgba(176,190,197,0.4); } /* 銀 */
-        .rank-3 { background-color: #bcaaa4; box-shadow: 0 2px 5px rgba(188,170,164,0.4); } /* 銅 */
-        .rank-other { background-color: #d7ccc8; color: #5d4037; }
-
+        button:hover {
+            background-color: #1b5e20;
+        }
+        .ranking-section {
+            margin-top: 35px;
+            border-top: 2px dashed #e0e0e0;
+            padding-top: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #2e7d32;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 15px;
+        }
+        th {
+            background-color: #f5f5f5;
+            color: #5d4037;
+            font-weight: bold;
+        }
+        tr:nth-child(even) td { 
+            background-color: #fbfbfa; 
+        }
+        .rank-num {
+            font-weight: bold;
+            width: 50px;
+            text-align: center;
+        }
+        /* 前三名小徽章色調 */
+        .rank-1 { color: #ffb300; }
+        .rank-2 { color: #9e9e9e; }
+        .rank-3 { color: #cd7f32; }
+        .rank-other { color: #8d6e63; }
+        
+        .vote-count {
+            text-align: right;
+            font-weight: bold;
+            color: #d84315;
+            width: 80px;
+        }
         .loading {
             text-align: center;
-            color: #8d6e63;
+            color: #7f8c8d;
             font-style: italic;
-            padding: 20px;
-        }
-
-        /* 微動態：讓上方的民俗樹飄浮 */
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(3deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
+            padding: 15px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- 頂部民俗與許願樹主題橫幅 -->
+    <!-- 頂部民俗與許願樹主題 -->
     <div class="header-banner">
         <div class="header-icon">🌳💃🕺</div>
         <h1>桃園國際民俗舞社<span>✨ 舞蹈許願樹 ✨</span></h1>
     </div>
     
-    <!-- 許願表單卡片 -->
-    <form id="wishForm" class="wish-card">
+    <!-- 許願表單 -->
+    <form id="wishForm">
         <div class="form-group">
             <label for="name">✍️ 舞士大名：</label>
-            <input type="text" id="name" required placeholder="請輸入您的姓名或暱稱">
+            <input type="text" id="name" required placeholder="請輸入姓名或暱稱">
         </div>
         <div class="form-group">
             <label for="wantToLearn">🌱 最想學的民俗舞：</label>
@@ -249,7 +160,7 @@
         </div>
         <div class="form-group">
             <label for="wantToTeach">📢 願分享/教的舞蹈（選填）：</label>
-            <input type="text" id="wantToTeach" placeholder="若有珍藏舞碼想與大家分享請填寫">
+            <input type="text" id="wantToTeach" placeholder="若有珍藏舞碼想分享請填寫">
         </div>
         <button type="submit" id="submitBtn">🎋 將心願掛上許願樹</button>
     </form>
@@ -261,13 +172,13 @@
         <table id="rankingTable" style="display: none;">
             <thead>
                 <tr>
-                    <th style="width: 70px;">名次</th>
+                    <th class="rank-num">名次</th>
                     <th>舞碼名稱</th>
-                    <th style="text-align: right; width: 100px;">期待人數</th>
+                    <th class="vote-count">期待人數</th>
                 </tr>
             </thead>
             <tbody id="rankingBody">
-                <!-- 由 JavaScript 自動寫入民俗風卡片 -->
+                <!-- 資料由 JavaScript 自動填入 -->
             </tbody>
         </table>
     </div>
@@ -314,46 +225,47 @@
     });
 
     function fetchRanking() {
-    const loadingText = document.getElementById("loadingText");
-    const rankingTable = document.getElementById("rankingTable");
-    const rankingBody = document.getElementById("rankingBody");
+        const loadingText = document.getElementById("loadingText");
+        const rankingTable = document.getElementById("rankingTable");
+        const rankingBody = document.getElementById("rankingBody");
 
-    loadingText.style.display = "block";
-    rankingTable.style.display = "none";
-    
-    fetch(GAS_URL)
-    .then(response => response.json())
-    .then(data => {
-        rankingBody.innerHTML = "";
-        if (data.length === 0) {
-            loadingText.innerText = "許願樹上空空如也，快來掛上第一個心願吧！";
-            return;
-        }
+        loadingText.style.display = "block";
+        rankingTable.style.display = "none";
         
-        data.forEach((item, index) => {
-            const row = document.createElement("tr");
+        fetch(GAS_URL)
+        .then(response => response.json())
+        .then(data => {
+            rankingBody.innerHTML = "";
+            if (data.length === 0) {
+                loadingText.innerText = "許願樹上空空如也，快來掛上第一個心願吧！";
+                return;
+            }
             
-            // 根據名次決定徽章樣式
-            let rankClass = "rank-other";
-            if (index === 0) rankClass = "rank-1";
-            else if (index === 1) rankClass = "rank-2";
-            else if (index === 2) rankClass = "rank-3";
+            data.forEach((item, index) => {
+                const row = document.createElement("tr");
+                
+                // 根據名次決定數字顏色（金、銀、銅、褐）
+                let rankClass = "rank-other";
+                if (index === 0) rankClass = "rank-1";
+                else if (index === 1) rankClass = "rank-2";
+                else if (index === 2) rankClass = "rank-3";
+                
+                row.innerHTML = `
+                    <td class="rank-num ${rankClass}">${index + 1}</td>
+                    <td>💃 ${item.dance}</td>
+                    <td class="vote-count">${item.count} 票</td>
+                `;
+                rankingBody.appendChild(row);
+            });
             
-            // 💡 修正重點：必須使用 <td> 才能正確對齊原本設定的「名次」、「舞碼」、「票數」三欄
-            row.innerHTML = `
-                <td><span class="rank-badge ${rankClass}">${index + 1}</span></td>
-                <td>💃 ${item.dance}</td>
-                <td>${item.count} 票</td>
-            `;
-            rankingBody.appendChild(row);
+            loadingText.style.display = "none";
+            rankingTable.style.display = "table";
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            loadingText.innerText = "無法讀取許願樹，請重新整理試試看。";
         });
-        
-        loadingText.style.display = "none";
-        rankingTable.style.display = "table";
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        loadingText.innerText = "無法讀取許願樹，請重新整理試試看。";
-    });
-}
+    }
 </script>
+</body>
+</html>
