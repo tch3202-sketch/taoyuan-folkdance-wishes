@@ -25,6 +25,48 @@
             color: #2c3e50;
         }
         h1 { margin-bottom: 30px; border-bottom: 2px solid #3498db; padding-bottom: 10px;}
+        
+        /* 💡 新增：我要許願切換按鈕樣式 */
+        .toggle-form-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #2e7d32; /* 用溫和的綠色代表許願 */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        .toggle-form-btn:hover {
+            background-color: #1b5e20;
+        }
+        .toggle-form-btn:active {
+            transform: scale(0.99);
+        }
+
+        /* 💡 新增：可收合表單容器的動畫樣式 */
+        .form-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+            background: #fafafa;
+            border-radius: 6px;
+            margin-bottom: 0;
+        }
+        /* 展開時的狀態 */
+        .form-container.open {
+            max-height: 500px; /* 給予足夠的展開高度 */
+            opacity: 1;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 25px;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -35,13 +77,17 @@
         }
         input[type="text"] {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 16px; /* 防止 iOS 點擊輸入框時畫面自動放大 */
         }
-        button {
+        input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .submit-btn {
             width: 100%;
             padding: 12px;
             background-color: #3498db;
@@ -51,12 +97,13 @@
             font-size: 18px;
             cursor: pointer;
             transition: background 0.3s;
+            font-weight: bold;
         }
-        button:hover {
+        .submit-btn:hover {
             background-color: #2980b9;
         }
         .ranking-section {
-            margin-top: 40px;
+            margin-top: 30px;
             border-top: 2px dashed #ccc;
             padding-top: 20px;
         }
@@ -90,24 +137,30 @@
 <body>
 
 <div class="container">
-    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d;">許願清單</span></h1>
+    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;">🌳 舞蹈許願樹 🌳</span></h1>
     
-    <!-- 許願表單 -->
-    <form id="wishForm">
-        <div class="form-group">
-            <label for="name">您的姓名：</label>
-            <input type="text" id="name" required placeholder="請輸入姓名或暱稱">
-        </div>
-        <div class="form-group">
-            <label for="wantToLearn">想學的舞：</label>
-            <input type="text" id="wantToLearn" required placeholder="請輸入完整的舞蹈名稱">
-        </div>
-        <div class="form-group">
-            <label for="wantToTeach">想教的舞（選填）：</label>
-            <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
-        </div>
-        <button type="submit" id="submitBtn">送出願望</button>
-    </form>
+    <!-- 💡 新增：點擊展開/收合的許願按鈕 -->
+    <button type="button" id="toggleFormBtn" class="toggle-form-btn">🎋 我要許願</button>
+
+    <!-- 💡 新增外層包裹容器：用來控制收合與展開 -->
+    <div id="formContainer" class="form-container">
+        <!-- 許願表單 -->
+        <form id="wishForm">
+            <div class="form-group">
+                <label for="name">您的姓名：</label>
+                <input type="text" id="name" required placeholder="請輸入姓名或暱稱">
+            </div>
+            <div class="form-group">
+                <label for="wantToLearn">想學的舞：</label>
+                <input type="text" id="wantToLearn" required placeholder="請輸入完整的舞蹈名稱">
+            </div>
+            <div class="form-group">
+                <label for="wantToTeach">想教的舞（選填）：</label>
+                <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
+            </div>
+            <button type="submit" id="submitBtn" class="submit-btn">送出願望</button>
+        </form>
+    </div>
 
     <!-- 排行榜區塊 -->
     <div class="ranking-section">
@@ -129,11 +182,25 @@
 </div>
 
 <script>
-    // ⚠️ 請在此處替換成您在 Google Apps Script 部署得到的網頁應用程式 URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzwXWm9nLJIrnQiOvqOPMjMptDH3tqPxpBVOLLB4bhSpbO8Mnn251qhk7Ix06Ka59XoYQ/exec";
 
     // 網頁載入完成後，自動讀取排行榜
     document.addEventListener("DOMContentLoaded", fetchRanking);
+
+    // 💡 新增：控制表單展開與收合的 JavaScript 邏輯
+    const toggleFormBtn = document.getElementById("toggleFormBtn");
+    const formContainer = document.getElementById("formContainer");
+
+    toggleFormBtn.addEventListener("click", function() {
+        formContainer.classList.toggle("open");
+        if (formContainer.classList.contains("open")) {
+            toggleFormBtn.innerText = "❌ 收起表單";
+            toggleFormBtn.style.backgroundColor = "#7f8c8d"; // 展開時按鈕變灰色
+        } else {
+            toggleFormBtn.innerText = "🎋 我要許願";
+            toggleFormBtn.style.backgroundColor = "#2e7d32"; // 收起時按鈕變回綠色
+        }
+    });
 
     // 處理表單提交事件
     document.getElementById("wishForm").addEventListener("submit", function(e) {
@@ -152,8 +219,7 @@
         // 以 POST 方式傳送資料至 GAS
         fetch(GAS_URL, {
             method: "POST",
-            method: "POST",
-            mode: "no-cors", // 避免跨網域 CORS 問題
+            mode: "no-cors", 
             headers: {
                 "Content-Type": "application/json"
             },
@@ -164,6 +230,12 @@
             document.getElementById("wishForm").reset();
             submitBtn.disabled = false;
             submitBtn.innerText = "送出願望";
+            
+            // 💡 核心修改：送出成功後，將表單容器關閉，並將大按鈕還原成初始狀態
+            formContainer.classList.remove("open");
+            toggleFormBtn.innerText = "🎋 我要許願";
+            toggleFormBtn.style.backgroundColor = "#2e7d32";
+
             // 重新讀取排行榜
             fetchRanking();
         })
@@ -217,3 +289,4 @@
 </script>
 </body>
 </html>
+
