@@ -29,7 +29,7 @@
         .toggle-form-btn {
             width: 100%;
             padding: 14px;
-            background-color: #2e7d32; /* 初始状态：綠色 */
+            background-color: #2e7d32; 
             color: white;
             border: none;
             border-radius: 4px;
@@ -85,7 +85,6 @@
             outline: none;
         }
         
-        /* 💡 修正：「送出願望」按鈕改為紅色（#e74c3c） */
         .submit-btn {
             width: 100%;
             padding: 12px;
@@ -114,24 +113,43 @@
             margin-top: 15px;
         }
         th, td {
-            padding: 12px;
+            padding: 12px 6px; /* 💡 稍微壓緊手機版的左右內襯，擠出更多寬度 */
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
         th {
             background-color: #f2f2f2;
             color: #2c3e50;
+            font-size: 15px;
         }
         tr:nth-child(even) { background-color: #fafafa; }
+        
         .rank-num {
             font-weight: bold;
             color: #e74c3c;
-            width: 50px;
+            width: 40px;
+            white-space: nowrap;
         }
         
-        /* 舞名比對成功時變紅色與粗體 */
+        /* 💡 新增：針對長標題儲存格做寬度鎖定與微調字型，防止手機端換行 */
+        .dance-title-th {
+            white-space: nowrap; 
+        }
+
+        .dance-name-cell {
+            word-break: break-all; 
+            color: #333;
+        }
+        
         .match-dance {
             color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .vote-count {
+            text-align: right;
+            white-space: nowrap; 
+            width: 60px; /* 💡 優化：縮小寬度，將更多空間讓給中間的舞名標題 */
             font-weight: bold;
         }
 
@@ -139,6 +157,22 @@
             text-align: center;
             color: #7f8c8d;
             font-style: italic;
+        }
+
+        /* 💡 核心修正：利用媒體查詢（Media Query），當偵測到是手機小螢幕時，自動微調字體 */
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 10px; /* 減少網頁外圍留白 */
+            }
+            .container {
+                padding: 20px 15px; /* 擴大手機版內部可用寬度 */
+            }
+            th {
+                font-size: 12.5px; /* 💡 關鍵：手機版標題稍微縮小，確保 13 個字完全不換行擠壓 */
+            }
+            td {
+                font-size: 14.5px;
+            }
         }
     </style>
 </head>
@@ -163,7 +197,6 @@
                 <label for="wantToTeach">想教的舞（選填）：</label>
                 <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
             </div>
-            <!-- 💡 修正：送出按鈕文字前加上 🎋 插圖 -->
             <button type="submit" id="submitBtn" class="submit-btn">🎋 送出願望</button>
         </form>
     </div>
@@ -176,8 +209,9 @@
             <thead>
                 <tr>
                     <th class="rank-num">名次</th>
-                    <th>舞名(紅字表示許願成真)</th>
-                    <th style="width: 80px; text-align: right;">熱度</th>
+                    <!-- 💡 修正：加上 dance-title-th 類別，強迫不換行 -->
+                    <th class="dance-title-th">舞名(紅字表示許願成真)</th>
+                    <th class="vote-count">熱度</th>
                 </tr>
             </thead>
             <tbody id="rankingBody">
@@ -198,7 +232,6 @@
     toggleFormBtn.addEventListener("click", function() {
         formContainer.classList.toggle("open");
         if (formContainer.classList.contains("open")) {
-            // 💡 修正：「收起表單」時，大按鈕改為深綠色（#2e7d32）
             toggleFormBtn.innerText = "❌ 收起表單";
             toggleFormBtn.style.backgroundColor = "#2e7d32"; 
         } else {
