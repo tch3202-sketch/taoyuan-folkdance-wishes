@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" dcontent="width=device-width, initial-scale=1.0">
     <title>桃園國際民俗舞社-許願清單</title>
     <style>
         body {
@@ -125,30 +125,10 @@
             width: 50px;
         }
         
-        /* 💡 修正 1：設定表格欄位防止文字在不適當的地方斷行 */
-        .dance-name-td {
-            white-space: nowrap; /* 💡 核心修正：強制整行文字包含標籤不換行 */
-            overflow: hidden;
-            text-overflow: ellipsis; /* 如果手機真的很小，字體過長會顯示...，而非斷行 */
-        }
-
+        /* 💡 舞名變紅色與粗體樣式 */
         .match-dance {
             color: #e74c3c;
             font-weight: bold;
-        }
-
-        /* 💡 修正 2：優化成標籤樣式，並緊跟在文字後方 */
-        .teach-badge {
-            display: inline-block;
-            background-color: #ffebee;
-            color: #c62828;
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 6px;
-            font-weight: bold;
-            border: 1px solid #ffcdd2;
-            vertical-align: middle;
         }
 
         .loading {
@@ -172,11 +152,12 @@
                 <input type="text" id="name" required placeholder="請輸入姓名或暱稱">
             </div>
             <div class="form-group">
-                <label for="wantToLearn">想學的舞：</label>
-                <input type="text" id="wantToLearn" required placeholder="請輸入完整的舞蹈名稱">
+                <!-- 💡 移除 required 屬性，允許不填 -->
+                <label for="wantToLearn">想學的舞（選填）：</label>
+                <input type="text" id="wantToLearn" placeholder="請輸入舞蹈名稱">
             </div>
             <div class="form-group">
-                <label for="wantToTeach">想教 the 舞（選填）：</label>
+                <label for="wantToTeach">想教的舞（選填）：</label>
                 <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
             </div>
             <button type="submit" id="submitBtn" class="submit-btn">送出願望</button>
@@ -203,7 +184,8 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyAZO1xN-SEOptG9TBqPNcWDCXXFwTBMu36SH0F12g4l4i299vhkxDYjIw13m8KftwfKQ/exec";
+    // ⚠️ 請記得更換成您最新的 GAS 網頁應用程式 URL
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx098y0AkfyEQvaKKNCjsPek2J9nOa1JgJMbb3_aphGxl_jxi_i2ArVp7l-4Qo7HpkYAA/exec";
 
     document.addEventListener("DOMContentLoaded", fetchRanking);
 
@@ -225,14 +207,23 @@
     document.getElementById("wishForm").addEventListener("submit", function(e) {
         e.preventDefault();
         
+        const wantToLearnVal = document.getElementById("wantToLearn").value.trim();
+        const wantToTeachVal = document.getElementById("wantToTeach").value.trim();
+
+        // 💡 檢查防呆：如果想學、想教兩欄都沒填，則攔截並警告
+        if (wantToLearnVal === "" && wantToTeachVal === "") {
+            alert("❌ 「想學的舞」或「想教的舞」請至少填寫一欄才能許願喔！");
+            return;
+        }
+
         const submitBtn = document.getElementById("submitBtn");
         submitBtn.disabled = true;
         submitBtn.innerText = "資料送出中...";
 
         const formData = {
             name: document.getElementById("name").value,
-            wantToLearn: document.getElementById("wantToLearn").value,
-            wantToTeach: document.getElementById("wantToTeach").value
+            wantToLearn: wantToLearnVal,
+            wantToTeach: wantToTeachVal
         };
 
         fetch(GAS_URL, {
@@ -244,8 +235,9 @@
             body: JSON.stringify(formData)
         })
         .then(() => {
-            alert("許願成功！感謝您的參與！");
+            alert("✨ 許願成功！您的心願已掛上許願樹！");
             
+            // 精準清空「想學」與「想教」，保留「姓名」
             document.getElementById("wantToLearn").value = "";
             document.getElementById("wantToTeach").value = "";
             
@@ -288,14 +280,12 @@
             data.forEach((item, index) => {
                 const row = document.createElement("tr");
                 
-                let danceClass = item.isMatch ? "match-dance" : "";
-                // 💡 修正 3：改用精緻的小標籤包覆文字，精簡手機寬度
-                let matchMark = item.isMatch ? '<span class="teach-badge">有人可教</span>' : '';
+                // 💡 如果比對成功，直接套用亮紅色樣式，不加上任何額外文字標籤
+                let danceClass = item.isMatch ? "class=\"match-dance\"" : "";
 
-                // 💡 修正 4：為 <td> 加上 dance-name-td 的類別
                 row.innerHTML = `
                     <td class="rank-num">${index + 1}</td>
-                    <td class="dance-name-td ${danceClass}">${item.dance}${matchMark}</td>
+                    <td ${danceClass}>💃 ${item.dance}</td>
                     <td style="text-align: right;">${item.count} 票</td>
                 `;
                 rankingBody.appendChild(row);
