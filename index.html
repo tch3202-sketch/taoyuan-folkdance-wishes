@@ -107,40 +107,21 @@
             border-top: 2px dashed #ccc;
             padding-top: 20px;
         }
-
-        /* 💡 新增：表格外部的固定高度與滑順捲動容器 */
-        .ranking-scroll-container {
-            max-height: 320px; /* 💡 預設高度，您未來可以自由調整 */
-            overflow-y: auto;   /* 縱向超出時自動觸發捲動 */
-            margin-top: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            -webkit-overflow-scrolling: touch; /* 讓 iOS 手機滑動更流暢 */
-        }
-        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 0; /* 貼緊容器頂部 */
+            margin-top: 15px;
         }
-        
         th, td {
             padding: 12px 6px; 
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        
-        /* 💡 新增：表格標題列吸頂（Sticky）防護機制，向下捲動時標題不會消失 */
         th {
             background-color: #f2f2f2;
             color: #2c3e50;
             font-size: 15px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            box-shadow: inset 0 -1px 0 #ddd; /* 防止滾動時邊框被背景吃掉 */
         }
-        
         tr:nth-child(even) { background-color: #fafafa; }
         
         .rank-num {
@@ -175,7 +156,6 @@
             text-align: center;
             color: #7f8c8d;
             font-style: italic;
-            padding: 20px;
         }
 
         @media screen and (max-width: 480px) {
@@ -223,28 +203,23 @@
     <div class="ranking-section">
         <h2>🔥 熱門學舞排行榜</h2>
         <div id="loadingText" class="loading">排行榜資料載入中...</div>
-        
-        <!-- 💡 新增：獨立捲動的外層圖塊包覆 -->
-        <div id="scrollContainer" class="ranking-scroll-container" style="display: none;">
-            <table id="rankingTable">
-                <thead>
-                    <tr>
-                        <th class="rank-num">名次</th>
-                        <th class="dance-title-th">舞名(紅字表示許願成真)</th>
-                        <th class="vote-count">熱度</th>
-                    </tr>
-                </thead>
-                <tbody id="rankingBody">
-                    <!-- 資料會由 JavaScript 自動生成 -->
-                </tbody>
-            </table>
-        </div>
+        <table id="rankingTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th class="rank-num">名次</th>
+                    <th class="dance-title-th">舞名(紅字表示許願成真)</th>
+                    <th class="vote-count">熱度</th>
+                </tr>
+            </thead>
+            <tbody id="rankingBody">
+                <!-- 資料會由 JavaScript 自動生成 -->
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // ⚠️ 請務必將此處替換成您在 Google Apps Script 部署得到的「網頁應用程式 URL」！
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx098y0AkfyEQvaKKNCjsPek2J9nOa1JgJMbb3_aphGxl_jxi_i2ArVp7l-4Qo7HpkYAA/exec";
+    const GAS_URL = "https://google.com";
 
     document.addEventListener("DOMContentLoaded", fetchRanking);
 
@@ -316,11 +291,11 @@
 
     function fetchRanking() {
         const loadingText = document.getElementById("loadingText");
-        const scrollContainer = document.getElementById("scrollContainer"); 
+        const rankingTable = document.getElementById("rankingTable");
         const rankingBody = document.getElementById("rankingBody");
 
         loadingText.style.display = "block";
-        scrollContainer.style.display = "none"; 
+        rankingTable.style.display = "none";
 
         fetch(GAS_URL)
         .then(response => response.json())
@@ -332,11 +307,15 @@
                 return;
             }
 
-            // 💡 修正重點：補回 <td> 標籤，並套用手機防跑版類別（dance-name-cell 與 vote-count）
-            data.forEach((item, index) => {
+            // 💡 核心優化：只取出前 10 名的舞蹈資料來顯示，避免清單過長
+            const maxDisplay = 10;
+            const displayData = data.slice(0, maxDisplay);
+
+            displayData.forEach((item, index) => {
                 const row = document.createElement("tr");
-                let danceClass = item.isMatch ? "match-dance" : "";
                 
+                let danceClass = item.isMatch ? "match-dance" : "";
+
                 row.innerHTML = `
                     <td class="rank-num">${index + 1}</td>
                     <td class="dance-name-cell ${danceClass}">${item.dance}</td>
@@ -346,11 +325,12 @@
             });
 
             loadingText.style.display = "none";
-            scrollContainer.style.display = "block"; 
+            rankingTable.style.display = "table";
         })
         .catch(error => {
-            console.error("Error:", error);
-            loadingText.innerText = "無法載入排行榜資料，請重新整理網頁。";
-        });
-    }
+console.error("Error:", error);
+loadingText.innerText = "無法載入排行榜資料，請重新整理網頁。";
+});
+}
 </script>
+    
