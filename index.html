@@ -26,11 +26,10 @@
         }
         h1 { margin-bottom: 30px; border-bottom: 2px solid #3498db; padding-bottom: 10px;}
         
-        /* 💡 新增：我要許願切換按鈕樣式 */
         .toggle-form-btn {
             width: 100%;
             padding: 14px;
-            background-color: #2e7d32; /* 用溫和的綠色代表許願 */
+            background-color: #2e7d32;
             color: white;
             border: none;
             border-radius: 4px;
@@ -48,7 +47,6 @@
             transform: scale(0.99);
         }
 
-        /* 💡 新增：可收合表單容器的動畫樣式 */
         .form-container {
             max-height: 0;
             overflow: hidden;
@@ -58,9 +56,8 @@
             border-radius: 6px;
             margin-bottom: 0;
         }
-        /* 展開時的狀態 */
         .form-container.open {
-            max-height: 500px; /* 給予足夠的展開高度 */
+            max-height: 500px;
             opacity: 1;
             padding: 15px;
             border: 1px solid #e0e0e0;
@@ -81,7 +78,7 @@
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 16px; /* 防止 iOS 點擊輸入框時畫面自動放大 */
+            font-size: 16px;
         }
         input[type="text"]:focus {
             border-color: #3498db;
@@ -127,6 +124,13 @@
             color: #e74c3c;
             width: 50px;
         }
+        
+        /* 💡 新增：當舞名同時有人想學且想教時的亮紅色樣式 */
+        .match-dance {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
         .loading {
             text-align: center;
             color: #7f8c8d;
@@ -139,12 +143,9 @@
 <div class="container">
     <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;">🌳 舞蹈許願樹 🌳</span></h1>
     
-    <!-- 💡 新增：點擊展開/收合的許願按鈕 -->
     <button type="button" id="toggleFormBtn" class="toggle-form-btn">🎋 我要許願</button>
 
-    <!-- 💡 新增外層包裹容器：用來控制收合與展開 -->
     <div id="formContainer" class="form-container">
-        <!-- 許願表單 -->
         <form id="wishForm">
             <div class="form-group">
                 <label for="name">您的姓名：</label>
@@ -164,7 +165,7 @@
 
     <!-- 排行榜區塊 -->
     <div class="ranking-section">
-        <h2>🔥 熱門學舞排行榜</h2>
+        <h2>🔥 許願排行榜</h2>
         <div id="loadingText" class="loading">排行榜資料載入中...</div>
         <table id="rankingTable" style="display: none;">
             <thead>
@@ -182,12 +183,11 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzwXWm9nLJIrnQiOvqOPMjMptDH3tqPxpBVOLLB4bhSpbO8Mnn251qhk7Ix06Ka59XoYQ/exec";
+    // ⚠️ 請記得檢查並更換成您最新的 GAS 網頁應用程式 URL
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyAZO1xN-SEOptG9TBqPNcWDCXXFwTBMu36SH0F12g4l4i299vhkxDYjIw13m8KftwfKQ/exec";
 
-    // 網頁載入完成後，自動讀取排行榜
     document.addEventListener("DOMContentLoaded", fetchRanking);
 
-    // 💡 新增：控制表單展開與收合的 JavaScript 邏輯
     const toggleFormBtn = document.getElementById("toggleFormBtn");
     const formContainer = document.getElementById("formContainer");
 
@@ -195,10 +195,10 @@
         formContainer.classList.toggle("open");
         if (formContainer.classList.contains("open")) {
             toggleFormBtn.innerText = "❌ 收起表單";
-            toggleFormBtn.style.backgroundColor = "#7f8c8d"; // 展開時按鈕變灰色
+            toggleFormBtn.style.backgroundColor = "#7f8c8d";
         } else {
             toggleFormBtn.innerText = "🎋 我要許願";
-            toggleFormBtn.style.backgroundColor = "#2e7d32"; // 收起時按鈕變回綠色
+            toggleFormBtn.style.backgroundColor = "#2e7d32";
         }
     });
 
@@ -216,7 +216,6 @@
             wantToTeach: document.getElementById("wantToTeach").value
         };
 
-        // 以 POST 方式傳送資料至 GAS
         fetch(GAS_URL, {
             method: "POST",
             mode: "no-cors", 
@@ -227,11 +226,15 @@
         })
         .then(() => {
             alert("許願成功！感謝您的參與！");
-            document.getElementById("wishForm").reset();
+            
+            // 💡 修正 1：不再使用 reset() 整體清空，而是精準清空「想學」與「想教」，從而保留「姓名」
+            document.getElementById("wantToLearn").value = "";
+            document.getElementById("wantToTeach").value = "";
+            
             submitBtn.disabled = false;
             submitBtn.innerText = "送出願望";
             
-            // 💡 核心修改：送出成功後，將表單容器關閉，並將大按鈕還原成初始狀態
+            // 送出成功後收合表單
             formContainer.classList.remove("open");
             toggleFormBtn.innerText = "🎋 我要許願";
             toggleFormBtn.style.backgroundColor = "#2e7d32";
@@ -256,7 +259,6 @@
         loadingText.style.display = "block";
         rankingTable.style.display = "none";
 
-        // 以 GET 方式向 GAS 請求排行榜 JSON 資料
         fetch(GAS_URL)
         .then(response => response.json())
         .then(data => {
@@ -270,9 +272,14 @@
             // 動態產生表格內容
             data.forEach((item, index) => {
                 const row = document.createElement("tr");
+                
+                // 💡 修正 2：根據後端比對傳回的 isMatch 結果，決定舞名是否套用 .match-dance (變紅色)
+                let danceClass = item.isMatch ? "class=\"match-dance\"" : "";
+                let matchMark = item.isMatch ? " 🌟 (有人可教!)" : "";
+
                 row.innerHTML = `
                     <td class="rank-num">${index + 1}</td>
-                    <td>${item.dance}</td>
+                    <td ${danceClass}>${item.dance}${matchMark}</td>
                     <td>${item.count} 票</td>
                 `;
                 rankingBody.appendChild(row);
@@ -289,4 +296,3 @@
 </script>
 </body>
 </html>
-
