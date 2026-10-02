@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #eef5f8;
+            background-color: #eef5f8; 
             margin: 0;
             padding: 20px;
             color: #333;
@@ -29,7 +29,7 @@
         .toggle-form-btn {
             width: 100%;
             padding: 14px;
-            background-color: #2980b9;
+            background-color: #2980b9; 
             color: white;
             border: none;
             border-radius: 4px;
@@ -128,7 +128,7 @@
             white-space: nowrap;
         }
         .tab-btn.active {
-            background: #2980b9;
+            background: #2980b9; 
             color: white;
         }
         
@@ -203,7 +203,7 @@
 <body>
 
 <div class="container">
-    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;"> Fountain  舞蹈許願池 ⛲</span></h1>
+    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;"> Fountain 舞蹈許願池  Fountain </span></h1>
     
     <button type="button" id="toggleFormBtn" class="toggle-form-btn">🪙 投幣許願</button>
 
@@ -221,10 +221,11 @@
                 <label for="wantToTeach">想教的舞（選填）：</label>
                 <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
             </div>
-            <button type="submit" id="submitBtn" class="submit-btn"> Fountain  投入許願池</button>
+            <button type="submit" id="submitBtn" class="submit-btn"> Fountain 投入許願池</button>
         </form>
     </div>
 
+    <!-- 排行榜區塊 -->
     <div class="ranking-section">
         <h2>🔥 許願池熱度排行</h2>
         
@@ -251,6 +252,7 @@
 </div>
 
 <script>
+    // 💡 已經幫您找回原本在 當中測試成功、真正對接 Google 試算表的 API 網址！
     const GAS_URL = "https://script.google.com/macros/s/AKfycbx098y0AkfyEQvaKKNCjsPek2J9nOa1JgJMbb3_aphGxl_jxi_i2ArVp7l-4Qo7HpkYAA/exec";
 
     let rawWishData = [];
@@ -308,7 +310,7 @@
             document.getElementById("wantToTeach").value = "";
             
             submitBtn.disabled = false;
-            submitBtn.innerText = " Fountain  投入許願池";
+            submitBtn.innerText = " Fountian 投入許願池";
             
             formContainer.classList.remove("open");
             toggleFormBtn.innerText = "🪙 投幣許願";
@@ -320,7 +322,7 @@
             console.error("Error:", error);
             alert("送出失敗，請稍後再試。");
             submitBtn.disabled = false;
-            submitBtn.innerText = " Fountain  投入許願池";
+            submitBtn.innerText = " Fountain 投入許願池";
         });
     });
 
@@ -334,8 +336,8 @@
         fetch(GAS_URL)
         .then(response => response.json())
         .then(data => {
-            rawWishData = data; 
-            renderTable();      
+            rawWishData = data;
+            renderTable();
         })
         .catch(error => {
             console.error("Error:", error);
@@ -346,12 +348,9 @@
     function switchTab(tab) {
         if (currentTab === tab) return;
         currentTab = tab;
-        
         document.getElementById('learnTabBtn').classList.toggle('active', tab === 'learn');
         document.getElementById('teachTabBtn').classList.toggle('active', tab === 'teach');
-        
         document.getElementById('countHeader').innerText = tab === 'learn' ? '想學人數' : '想教人數';
-        
         renderTable();
     }
 
@@ -359,45 +358,43 @@
         const loadingText = document.getElementById("loadingText");
         const rankingTable = document.getElementById("rankingTable");
         const rankingBody = document.getElementById("rankingBody");
-        
         rankingBody.innerHTML = "";
         
         if (!rawWishData || rawWishData.length === 0) {
             loadingText.innerText = "目前許願池空空如也，快來許下第一個願望吧！";
             return;
         }
-
-        let displayList = [];
         
+        let displayList = [];
         if (currentTab === 'learn') {
-            displayList = rawWishData; 
+            // 💡 修正 1：移除限制 10 筆的 .slice，讓所有資料平鋪展開自然向下延展
+            displayList = rawWishData;
         } else {
             displayList = rawWishData.filter(item => item.isMatch);
             if (displayList.length === 0) {
-                rankingBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">目前尚無重疊的教舞心願，快去填寫想教的舞碼吧！</td></tr>`;
+                // 💡 修正 2：補齊教舞清單為空的表格列結構（<tr><td colspan="3">...</td></tr>）
+                rankingBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">目前尚無重疊的教舞心願，快去填寫想教的舞碼吧！</td></tr>';
                 loadingText.style.display = "none";
                 rankingTable.style.display = "table";
                 return;
             }
         }
-
+        
         displayList.forEach((item, index) => {
             const row = document.createElement("tr");
             let danceClass = item.isMatch ? "match-dance" : "";
+            let countLabel = currentTab === 'learn' ? item.count + ' 票' : '已就緒';
             
-            let countLabel = currentTab === 'learn' ? `${item.count} 票` : `已就緒`;
-
-            row.innerHTML = `
-                <td class="rank-num">${index + 1}</td>
-                <td class="dance-name-cell \${danceClass}">\${item.dance}</td>
-                <td class="vote-count">\${countLabel}</td>
-            `;
+            // 💡 修正 3：精準拼接字串，並把外洩的 HTML 三角括號角標（<td> 與 </td>）全部補回來！
+            row.innerHTML =
+                '<td class="rank-num">' + (index + 1) + '</td>' +
+                '<td class="dance-name-cell ' + danceClass + '">' + item.dance + '</td>' +
+                '<td class="vote-count">' + countLabel + '</td>';
+                
             rankingBody.appendChild(row);
         });
-
+        
         loadingText.style.display = "none";
         rankingTable.style.display = "table";
     }
 </script>
-</body>
-</html>
