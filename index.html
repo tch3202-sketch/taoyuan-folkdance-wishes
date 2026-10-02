@@ -373,34 +373,46 @@
             return;
         }
         
-        // 🧠 前端多重資料聚合引擎
+        // 🧠 前端多重資料智慧聚合引擎
         let learnData = {}; // 存放學舞的 { 舞名: { names: [], count: 0 } }
         let teachData = {}; // 存放教舞的 { 舞名: { names: [] } }
         
         rawWishData.forEach(item => {
-            let userName = (item.name || "不具名").trim();
-            
-            // 歸納學舞資料
-            if (item.wantToLearn && item.wantToLearn.trim() !== "") {
-                let dLearn = item.wantToLearn.trim();
-                if (!learnData[dLearn]) {
-                    learnData[dLearn] = { names: [], count: 0 };
-                }
-                // 避免同一個人重複許願同一首舞時姓名重複列出
-                if (!learnData[dLearn].names.includes(userName)) {
-                    learnData[dLearn].names.push(userName);
-                }
-                learnData[dLearn].count++;
+            // 💡 關鍵優化 1：確保姓名欄位存在，且不論為空或未填都給予防護
+            let userName = "不具名";
+            if (item.name && item.name.toString().trim() !== "") {
+                userName = item.name.toString().trim();
             }
             
-            // 歸納教舞資料
-            if (item.wantToTeach && item.wantToTeach.trim() !== "") {
-                let dTeach = item.wantToTeach.trim();
-                if (!teachData[dTeach]) {
-                    teachData[dTeach] = { names: [] };
+            // 💡 關鍵優化 2：相容兩種後端傳輸格式，精準提取「想學的舞」
+            let learnDance = "";
+            if (item.wantToLearn && item.wantToLearn.toString().trim() !== "") {
+                learnDance = item.wantToLearn.toString().trim();
+            } else if (item.dance && item.dance.toString().trim() !== "") {
+                // 相容部分舊版 GAS 回傳的 dance 欄位屬性
+                learnDance = item.dance.toString().trim();
+            }
+            
+            if (learnDance !== "") {
+                if (!learnData[learnDance]) {
+                    learnData[learnDance] = { names: [], count: 0 };
                 }
-                if (!teachData[dTeach].names.includes(userName)) {
-                    teachData[dTeach].names.push(userName);
+                if (!learnData[learnDance].names.includes(userName)) {
+                    learnData[learnDance].names.push(userName);
+                }
+                // 如果後端已有累計權重則套用，否則前端自動逐筆累加熱度
+                let currentCount = (item.count && !isNaN(item.count)) ? parseInt(item.count) : 1;
+                learnData[learnDance].count += currentCount;
+            }
+            
+            // 💡 關鍵優化 3：精準提取「想教的舞」
+            if (item.wantToTeach && item.wantToTeach.toString().trim() !== "") {
+                let teachDance = item.wantToTeach.toString().trim();
+                if (!teachData[teachDance]) {
+                    teachData[teachDance] = { names: [] };
+                }
+                if (!teachData[teachDance].names.includes(userName)) {
+                    teachData[teachDance].names.push(userName);
                 }
             }
         });
@@ -413,7 +425,7 @@
                 let isMatch = teachData.hasOwnProperty(danceName);
                 displayList.push({
                     dance: danceName,
-                    namesStr: learnData[danceName].names.join('、'), // 💡 用頓號串聯多人姓名
+                    namesStr: learnData[danceName].names.join('、'), // 多人姓名頓號串聯
                     count: learnData[danceName].count,
                     isMatch: isMatch
                 });
@@ -426,17 +438,18 @@
                 let isMatch = learnData.hasOwnProperty(danceName);
                 displayList.push({
                     dance: danceName,
-                    namesStr: teachData[danceName].names.join('、'), // 💡 用頓號串聯多人姓名
-                    count: 0, // 教舞不呈現計數
+                    namesStr: teachData[danceName].names.join('、'), // 多人姓名頓號串聯
+                    count: 0,
                     isMatch: isMatch
                 });
             }
-            // 教舞按照舞名筆劃排序（或可維持預設）
+            // 教舞按照舞名筆劃排序
             displayList.sort((a, b) => a.dance.localeCompare(b.dance, 'zh-Hant'));
         }
         
         if (displayList.length === 0) {
-            let emptyMsg = currentTab === 'learn' ? '目前尚無學舞許願資料。' : '目前尚無教舞許願資料。';
+            let emptyMsg = currentTab === 'learn' ? '目前尚無學舞許願資料。' : '目前尚無教舞願望資料。';
+            // 💡 修正：配合目前的四欄式標題列架構，將 colspan 設為 4，確保提示訊息置中不破版
             rankingBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">' + emptyMsg + '</td></tr>';
             loadingText.style.display = "none";
             rankingTable.style.display = "table";
@@ -447,6 +460,25 @@
         displayList.forEach((item, index) => {
             const row = document.createElement("tr");
             let danceClass = item.isMatch ? "match-dance" : "";
+            
+            let htmlContent = 
+                '<td class="rank-num">' + (index + 1) + '</td>' +
+                '<td class="dance-name-cell ' + danceClass + '">' + item.dance + '</td>' +
+                '<td style="color: #555; font-size: 14px;">' + item.namesStr + '</td>';
+                
+            if (currentTab === 'learn') {
+                htmlContent += '<td class="vote-count">' + item.count + ' 票</td>';
+            } else {
+                htmlContent += '<td class="vote-count" style="display:none;"></td>';
+            }
+            
+            row.innerHTML = htmlContent;
+            rankingBody.appendChild(row);
+        });
+        
+        loadingText.style.display = "none";
+        rankingTable.style.display = "table";
+    }
             
             // 建立標準的四欄位架構，並依據分頁隱藏最後一欄
             let htmlContent = 
