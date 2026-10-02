@@ -6,7 +6,7 @@
     <title>桃園國際民俗舞社-舞蹈許願池</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #eef5f8; 
             margin: 0;
             padding: 20px;
@@ -203,7 +203,7 @@
 <body>
 
 <div class="container">
-    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;">  ⛲ 舞蹈許願池 ⛲ </span></h1>
+    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;">⛲⛲⛲ 舞蹈許願池 ⛲⛲⛲</span></h1>
     
     <button type="button" id="toggleFormBtn" class="toggle-form-btn">🪙 投幣許願</button>
 
@@ -221,11 +221,10 @@
                 <label for="wantToTeach">想教的舞（選填）：</label>
                 <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
             </div>
-            <button type="submit" id="submitBtn" class="submit-btn"> ⛲ 投入許願池</button>
+            <button type="submit" id="submitBtn" class="submit-btn">⛲ 投入許願池</button>
         </form>
     </div>
 
-    <!-- 排行榜區塊 -->
     <div class="ranking-section">
         <h2>🔥 許願池熱度排行</h2>
         
@@ -238,24 +237,22 @@
         
         <table id="rankingTable" style="display: none;">
             <thead>
-    <tr>
-        <th class="rank-num">名次</th>
-        <th class="dance-title-th">舞名(紅字表示許願成真)</th>
-        <th id="nameHeader" style="min-width: 100px;">許願者</th> <!-- 💡 新增姓名欄位 -->
-        <th class="vote-count" id="countHeader">熱度</th>
-    </tr>
-</thead>
-
+                <tr>
+                    <th class="rank-num">名次</th>
+                    <th class="dance-title-th">舞名(紅字表示許願成真)</th>
+                    <th id="nameHeader" style="min-width: 90px;">許願者</th>
+                    <th class="vote-count" id="countHeader">熱度</th>
+                </tr>
+            </thead>
             <tbody id="rankingBody">
                 <!-- 資料會由 JavaScript 自動生成 -->
             </tbody>
         </table>
     </div>
 </div>
-
 <script>
-    // 💡 您的 Google Apps Script 網頁應用程式 URL
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx098y0AkfyEQvaKKNCjsPek2J9nOa1JgJMbb3_aphGxl_jxi_i2ArVp7l-4Qo7HpkYAA/exec";
+    // 💡 ⚠️ 請將引號內的網址替換成您在 Google 試算表 Apps Script「新部署」得到的最新網頁應用程式網址！
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyCU3FvypIyjuJFs-BFVSFIq0J6WP2xL2vIqS8XJuzw6Cc0gzv9EmBDI5z6Ht714YpZ/exec";
 
     let rawWishData = [];
     let currentTab = 'learn'; 
@@ -308,7 +305,7 @@
             document.getElementById("wantToLearn").value = "";
             document.getElementById("wantToTeach").value = "";
             submitBtn.disabled = false;
-            submitBtn.innerText = " ⛲ 投入許願池";
+            submitBtn.innerText = " Fountain 投入許願池";
             formContainer.classList.remove("open");
             toggleFormBtn.innerText = "🪙 投幣許願";
             toggleFormBtn.style.backgroundColor = "#2980b9";
@@ -347,16 +344,15 @@
         document.getElementById('learnTabBtn').classList.toggle('active', tab === 'learn');
         document.getElementById('teachTabBtn').classList.toggle('active', tab === 'teach');
         
-        // 💡 修正：動態切換第三欄與第四欄（熱度）的標題
         const nameHeader = document.getElementById('nameHeader');
         const countHeader = document.getElementById('countHeader');
         
         if (tab === 'learn') {
             nameHeader.innerText = "許願者";
-            countHeader.style.display = "table-cell"; // 學舞分頁顯示熱度
+            countHeader.style.display = "table-cell"; 
         } else {
             nameHeader.innerText = "教舞老師";
-            countHeader.style.display = "none";       // 教舞分頁隱藏人數與熱度
+            countHeader.style.display = "none";       
         }
         
         renderTable();
@@ -373,24 +369,18 @@
             return;
         }
         
-        // 🧠 前端多重資料智慧聚合引擎
-        let learnData = {}; // 存放學舞的 { 舞名: { names: [], count: 0 } }
-        let teachData = {}; // 存放教舞的 { 舞名: { names: [] } }
+        let learnData = {}; 
+        let teachData = {}; 
         
         rawWishData.forEach(item => {
-            // 💡 關鍵優化 1：確保姓名欄位存在，且不論為空或未填都給予防護
             let userName = "不具名";
             if (item.name && item.name.toString().trim() !== "") {
                 userName = item.name.toString().trim();
             }
             
-            // 💡 關鍵優化 2：相容兩種後端傳輸格式，精準提取「想學的舞」
             let learnDance = "";
             if (item.wantToLearn && item.wantToLearn.toString().trim() !== "") {
                 learnDance = item.wantToLearn.toString().trim();
-            } else if (item.dance && item.dance.toString().trim() !== "") {
-                // 相容部分舊版 GAS 回傳的 dance 欄位屬性
-                learnDance = item.dance.toString().trim();
             }
             
             if (learnDance !== "") {
@@ -400,12 +390,9 @@
                 if (!learnData[learnDance].names.includes(userName)) {
                     learnData[learnDance].names.push(userName);
                 }
-                // 如果後端已有累計權重則套用，否則前端自動逐筆累加熱度
-                let currentCount = (item.count && !isNaN(item.count)) ? parseInt(item.count) : 1;
-                learnData[learnDance].count += currentCount;
+                learnData[learnDance].count++;
             }
             
-            // 💡 關鍵優化 3：精準提取「想教的舞」
             if (item.wantToTeach && item.wantToTeach.toString().trim() !== "") {
                 let teachDance = item.wantToTeach.toString().trim();
                 if (!teachData[teachDance]) {
@@ -417,7 +404,6 @@
             }
         });
         
-        // 依據選取分頁產生列表
         let displayList = [];
         
         if (currentTab === 'learn') {
@@ -425,12 +411,11 @@
                 let isMatch = teachData.hasOwnProperty(danceName);
                 displayList.push({
                     dance: danceName,
-                    namesStr: learnData[danceName].names.join('、'), // 多人姓名頓號串聯
+                    namesStr: learnData[danceName].names.join('、'), 
                     count: learnData[danceName].count,
                     isMatch: isMatch
                 });
             }
-            // 學舞按照票數由多到少排序
             displayList.sort((a, b) => b.count - a.count);
             
         } else {
@@ -438,25 +423,22 @@
                 let isMatch = learnData.hasOwnProperty(danceName);
                 displayList.push({
                     dance: danceName,
-                    namesStr: teachData[danceName].names.join('、'), // 多人姓名頓號串聯
+                    namesStr: teachData[danceName].names.join('、'), 
                     count: 0,
                     isMatch: isMatch
                 });
             }
-            // 教舞按照舞名筆劃排序
             displayList.sort((a, b) => a.dance.localeCompare(b.dance, 'zh-Hant'));
         }
         
         if (displayList.length === 0) {
             let emptyMsg = currentTab === 'learn' ? '目前尚無學舞許願資料。' : '目前尚無教舞願望資料。';
-            // 💡 修正：配合目前的四欄式標題列架構，將 colspan 設為 4，確保提示訊息置中不破版
             rankingBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">' + emptyMsg + '</td></tr>';
             loadingText.style.display = "none";
             rankingTable.style.display = "table";
             return;
         }
         
-        // 渲染生成表格
         displayList.forEach((item, index) => {
             const row = document.createElement("tr");
             let danceClass = item.isMatch ? "match-dance" : "";
@@ -479,25 +461,6 @@
         loadingText.style.display = "none";
         rankingTable.style.display = "table";
     }
-            
-            // 建立標準的四欄位架構，並依據分頁隱藏最後一欄
-            let htmlContent = 
-                '<td class="rank-num">' + (index + 1) + '</td>' +
-                '<td class="dance-name-cell ' + danceClass + '">' + item.dance + '</td>' +
-                '<td style="color: #555; font-size: 14px;">' + item.namesStr + '</td>';
-                
-            if (currentTab === 'learn') {
-                htmlContent += '<td class="vote-count">' + item.count + ' 票</td>';
-            } else {
-                htmlContent += '<td class="vote-count" style="display:none;"></td>';
-            }
-            
-            row.innerHTML = htmlContent;
-            rankingBody.appendChild(row);
-        });
-        
-        loadingText.style.display = "none";
-        rankingTable.style.display = "table";
-    }
 </script>
-
+</body>
+</html>
