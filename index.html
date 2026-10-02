@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>桃園國際民俗舞社-許願清單</title>
+    <title>桃園國際民俗舞社-舞蹈許願池</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            background-color: #eef5f8;
             margin: 0;
             padding: 20px;
             color: #333;
@@ -24,12 +24,12 @@
             text-align: center;
             color: #2c3e50;
         }
-        h1 { margin-bottom: 30px; border-bottom: 2px solid #3498db; padding-bottom: 10px;}
+        h1 { margin-bottom: 30px; border-bottom: 2px solid #2980b9; padding-bottom: 10px; color: #2980b9;}
         
         .toggle-form-btn {
             width: 100%;
             padding: 14px;
-            background-color: #2e7d32; 
+            background-color: #2980b9;
             color: white;
             border: none;
             border-radius: 4px;
@@ -41,7 +41,7 @@
             letter-spacing: 1px;
         }
         .toggle-form-btn:hover {
-            background-color: #1b5e20;
+            background-color: #1f618d;
         }
         .toggle-form-btn:active {
             transform: scale(0.99);
@@ -81,7 +81,7 @@
             font-size: 16px;
         }
         input[type="text"]:focus {
-            border-color: #3498db;
+            border-color: #2980b9;
             outline: none;
         }
         
@@ -107,10 +107,35 @@
             border-top: 2px dashed #ccc;
             padding-top: 20px;
         }
+
+        .tab-container {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #e0e0e0;
+            color: #555;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: #2980b9;
+            color: white;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 5px;
         }
         th, td {
             padding: 12px 6px; 
@@ -156,6 +181,7 @@
             text-align: center;
             color: #7f8c8d;
             font-style: italic;
+            padding: 20px;
         }
 
         @media screen and (max-width: 480px) {
@@ -165,7 +191,7 @@
             .container {
                 padding: 20px 15px; 
             }
-            th {
+            th, .tab-btn {
                 font-size: 12.5px; 
             }
             td {
@@ -177,9 +203,9 @@
 <body>
 
 <div class="container">
-    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;">🌳 舞蹈許願樹 🌳</span></h1>
+    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;"> Fountain  舞蹈許願池 ⛲</span></h1>
     
-    <button type="button" id="toggleFormBtn" class="toggle-form-btn">🎋 我要許願</button>
+    <button type="button" id="toggleFormBtn" class="toggle-form-btn">🪙 投幣許願</button>
 
     <div id="formContainer" class="form-container">
         <form id="wishForm">
@@ -195,20 +221,26 @@
                 <label for="wantToTeach">想教的舞（選填）：</label>
                 <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
             </div>
-            <button type="submit" id="submitBtn" class="submit-btn">🎋 送出願望</button>
+            <button type="submit" id="submitBtn" class="submit-btn"> Fountain  投入許願池</button>
         </form>
     </div>
 
-    <!-- 排行榜區塊 -->
     <div class="ranking-section">
-        <h2>🔥 許願排行榜</h2>
+        <h2>🔥 許願池熱度排行</h2>
+        
+        <div class="tab-container">
+            <button class="tab-btn active" id="learnTabBtn" onclick="switchTab('learn')">🌱 學舞許願單</button>
+            <button class="tab-btn" id="teachTabBtn" onclick="switchTab('teach')">📢 教舞許願單</button>
+        </div>
+
         <div id="loadingText" class="loading">排行榜資料載入中...</div>
+        
         <table id="rankingTable" style="display: none;">
             <thead>
                 <tr>
                     <th class="rank-num">名次</th>
                     <th class="dance-title-th">舞名(紅字表示許願成真)</th>
-                    <th class="vote-count">熱度</th>
+                    <th class="vote-count" id="countHeader">想學人數</th>
                 </tr>
             </thead>
             <tbody id="rankingBody">
@@ -221,6 +253,9 @@
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbx098y0AkfyEQvaKKNCjsPek2J9nOa1JgJMbb3_aphGxl_jxi_i2ArVp7l-4Qo7HpkYAA/exec";
 
+    let rawWishData = [];
+    let currentTab = 'learn'; 
+
     document.addEventListener("DOMContentLoaded", fetchRanking);
 
     const toggleFormBtn = document.getElementById("toggleFormBtn");
@@ -230,10 +265,10 @@
         formContainer.classList.toggle("open");
         if (formContainer.classList.contains("open")) {
             toggleFormBtn.innerText = "❌ 收起表單";
-            toggleFormBtn.style.backgroundColor = "#2e7d32"; 
+            toggleFormBtn.style.backgroundColor = "#7f8c8d"; 
         } else {
-            toggleFormBtn.innerText = "🎋 我要許願";
-            toggleFormBtn.style.backgroundColor = "#2e7d32";
+            toggleFormBtn.innerText = "🪙 投幣許願";
+            toggleFormBtn.style.backgroundColor = "#2980b9";
         }
     });
 
@@ -250,7 +285,7 @@
 
         const submitBtn = document.getElementById("submitBtn");
         submitBtn.disabled = true;
-        submitBtn.innerText = "資料送出中...";
+        submitBtn.innerText = "心願沉入池中...";
 
         const formData = {
             name: document.getElementById("name").value,
@@ -267,17 +302,17 @@
             body: JSON.stringify(formData)
         })
         .then(() => {
-            alert("✨ 許願成功！您的心願已掛上許願樹！");
+            alert("✨ 許願成功！您的願望已沉入舞蹈許願池中！");
             
             document.getElementById("wantToLearn").value = "";
             document.getElementById("wantToTeach").value = "";
             
             submitBtn.disabled = false;
-            submitBtn.innerText = "🎋 送出願望";
+            submitBtn.innerText = " Fountain  投入許願池";
             
             formContainer.classList.remove("open");
-            toggleFormBtn.innerText = "🎋 我要許願";
-            toggleFormBtn.style.backgroundColor = "#2e7d32";
+            toggleFormBtn.innerText = "🪙 投幣許願";
+            toggleFormBtn.style.backgroundColor = "#2980b9";
 
             fetchRanking();
         })
@@ -285,14 +320,13 @@
             console.error("Error:", error);
             alert("送出失敗，請稍後再試。");
             submitBtn.disabled = false;
-            submitBtn.innerText = "🎋 送出願望";
+            submitBtn.innerText = " Fountain  投入許願池";
         });
     });
 
     function fetchRanking() {
         const loadingText = document.getElementById("loadingText");
         const rankingTable = document.getElementById("rankingTable");
-        const rankingBody = document.getElementById("rankingBody");
 
         loadingText.style.display = "block";
         rankingTable.style.display = "none";
@@ -300,37 +334,70 @@
         fetch(GAS_URL)
         .then(response => response.json())
         .then(data => {
-            rankingBody.innerHTML = "";
-            
-            if (data.length === 0) {
-                loadingText.innerText = "目前尚無許願資料，快來當第一個吧！";
-                return;
-            }
-
-            // 💡 核心優化：只取出前 10 名的舞蹈資料來顯示，避免清單過長
-            const maxDisplay = 10;
-            const displayData = data.slice(0, maxDisplay);
-
-            displayData.forEach((item, index) => {
-                const row = document.createElement("tr");
-                
-                let danceClass = item.isMatch ? "match-dance" : "";
-
-                row.innerHTML = `
-                    <td class="rank-num">${index + 1}</td>
-                    <td class="dance-name-cell ${danceClass}">${item.dance}</td>
-                    <td class="vote-count">${item.count} 票</td>
-                `;
-                rankingBody.appendChild(row);
-            });
-
-            loadingText.style.display = "none";
-            rankingTable.style.display = "table";
+            rawWishData = data; 
+            renderTable();      
         })
         .catch(error => {
-console.error("Error:", error);
-loadingText.innerText = "無法載入排行榜資料，請重新整理網頁。";
-});
-}
+            console.error("Error:", error);
+            loadingText.innerText = "無法載入許願池資料，請重新整理網頁。";
+        });
+    }
+
+    function switchTab(tab) {
+        if (currentTab === tab) return;
+        currentTab = tab;
+        
+        document.getElementById('learnTabBtn').classList.toggle('active', tab === 'learn');
+        document.getElementById('teachTabBtn').classList.toggle('active', tab === 'teach');
+        
+        document.getElementById('countHeader').innerText = tab === 'learn' ? '想學人數' : '想教人數';
+        
+        renderTable();
+    }
+
+    function renderTable() {
+        const loadingText = document.getElementById("loadingText");
+        const rankingTable = document.getElementById("rankingTable");
+        const rankingBody = document.getElementById("rankingBody");
+        
+        rankingBody.innerHTML = "";
+        
+        if (!rawWishData || rawWishData.length === 0) {
+            loadingText.innerText = "目前許願池空空如也，快來許下第一個願望吧！";
+            return;
+        }
+
+        let displayList = [];
+        
+        if (currentTab === 'learn') {
+            displayList = rawWishData; 
+        } else {
+            displayList = rawWishData.filter(item => item.isMatch);
+            if (displayList.length === 0) {
+                rankingBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">目前尚無重疊的教舞心願，快去填寫想教的舞碼吧！</td></tr>`;
+                loadingText.style.display = "none";
+                rankingTable.style.display = "table";
+                return;
+            }
+        }
+
+        displayList.forEach((item, index) => {
+            const row = document.createElement("tr");
+            let danceClass = item.isMatch ? "match-dance" : "";
+            
+            let countLabel = currentTab === 'learn' ? `${item.count} 票` : `已就緒`;
+
+            row.innerHTML = `
+                <td class="rank-num">${index + 1}</td>
+                <td class="dance-name-cell \${danceClass}">\${item.dance}</td>
+                <td class="vote-count">\${countLabel}</td>
+            `;
+            rankingBody.appendChild(row);
+        });
+
+        loadingText.style.display = "none";
+        rankingTable.style.display = "table";
+    }
 </script>
-    
+</body>
+</html>
