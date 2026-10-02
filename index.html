@@ -203,7 +203,7 @@
 <body>
 
 <div class="container">
-    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;"> Fountain 舞蹈許願池  Fountain </span></h1>
+    <h1>桃園國際民俗舞社<br><span style="font-size: 18px; color: #7f8c8d; display: block; margin-top: 5px;">  ⛲ 舞蹈許願池 ⛲ </span></h1>
     
     <button type="button" id="toggleFormBtn" class="toggle-form-btn">🪙 投幣許願</button>
 
@@ -221,7 +221,7 @@
                 <label for="wantToTeach">想教的舞（選填）：</label>
                 <input type="text" id="wantToTeach" placeholder="若有想分享的舞請填寫">
             </div>
-            <button type="submit" id="submitBtn" class="submit-btn"> Fountain 投入許願池</button>
+            <button type="submit" id="submitBtn" class="submit-btn"> ⛲ 投入許願池</button>
         </form>
     </div>
 
@@ -238,12 +238,14 @@
         
         <table id="rankingTable" style="display: none;">
             <thead>
-                <tr>
-                    <th class="rank-num">名次</th>
-                    <th class="dance-title-th">舞名(紅字表示許願成真)</th>
-                    <th class="vote-count" id="countHeader">想學人數</th>
-                </tr>
-            </thead>
+    <tr>
+        <th class="rank-num">名次</th>
+        <th class="dance-title-th">舞名(紅字表示許願成真)</th>
+        <th id="nameHeader" style="min-width: 100px;">許願者</th> <!-- 💡 新增姓名欄位 -->
+        <th class="vote-count" id="countHeader">熱度</th>
+    </tr>
+</thead>
+
             <tbody id="rankingBody">
                 <!-- 資料會由 JavaScript 自動生成 -->
             </tbody>
@@ -252,7 +254,7 @@
 </div>
 
 <script>
-    // 💡 已經幫您找回原本在 當中測試成功、真正對接 Google 試算表的 API 網址！
+    // 💡 您的 Google Apps Script 網頁應用程式 URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbx098y0AkfyEQvaKKNCjsPek2J9nOa1JgJMbb3_aphGxl_jxi_i2ArVp7l-4Qo7HpkYAA/exec";
 
     let rawWishData = [];
@@ -298,31 +300,25 @@
         fetch(GAS_URL, {
             method: "POST",
             mode: "no-cors", 
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         })
         .then(() => {
             alert("✨ 許願成功！您的願望已沉入舞蹈許願池中！");
-            
             document.getElementById("wantToLearn").value = "";
             document.getElementById("wantToTeach").value = "";
-            
             submitBtn.disabled = false;
-            submitBtn.innerText = " Fountian 投入許願池";
-            
+            submitBtn.innerText = " ⛲ 投入許願池";
             formContainer.classList.remove("open");
             toggleFormBtn.innerText = "🪙 投幣許願";
             toggleFormBtn.style.backgroundColor = "#2980b9";
-
             fetchRanking();
         })
         .catch(error => {
             console.error("Error:", error);
             alert("送出失敗，請稍後再試。");
             submitBtn.disabled = false;
-            submitBtn.innerText = " Fountain 投入許願池";
+            submitBtn.innerText = "⛲ 投入許願池";
         });
     });
 
@@ -350,7 +346,19 @@
         currentTab = tab;
         document.getElementById('learnTabBtn').classList.toggle('active', tab === 'learn');
         document.getElementById('teachTabBtn').classList.toggle('active', tab === 'teach');
-        document.getElementById('countHeader').innerText = tab === 'learn' ? '想學人數' : '想教人數';
+        
+        // 💡 修正：動態切換第三欄與第四欄（熱度）的標題
+        const nameHeader = document.getElementById('nameHeader');
+        const countHeader = document.getElementById('countHeader');
+        
+        if (tab === 'learn') {
+            nameHeader.innerText = "許願者";
+            countHeader.style.display = "table-cell"; // 學舞分頁顯示熱度
+        } else {
+            nameHeader.innerText = "教舞老師";
+            countHeader.style.display = "none";       // 教舞分頁隱藏人數與熱度
+        }
+        
         renderTable();
     }
 
@@ -365,32 +373,94 @@
             return;
         }
         
-        let displayList = [];
-        if (currentTab === 'learn') {
-            // 💡 修正 1：移除限制 10 筆的 .slice，讓所有資料平鋪展開自然向下延展
-            displayList = rawWishData;
-        } else {
-            displayList = rawWishData.filter(item => item.isMatch);
-            if (displayList.length === 0) {
-                // 💡 修正 2：補齊教舞清單為空的表格列結構（<tr><td colspan="3">...</td></tr>）
-                rankingBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">目前尚無重疊的教舞心願，快去填寫想教的舞碼吧！</td></tr>';
-                loadingText.style.display = "none";
-                rankingTable.style.display = "table";
-                return;
+        // 🧠 前端多重資料聚合引擎
+        let learnData = {}; // 存放學舞的 { 舞名: { names: [], count: 0 } }
+        let teachData = {}; // 存放教舞的 { 舞名: { names: [] } }
+        
+        rawWishData.forEach(item => {
+            let userName = (item.name || "不具名").trim();
+            
+            // 歸納學舞資料
+            if (item.wantToLearn && item.wantToLearn.trim() !== "") {
+                let dLearn = item.wantToLearn.trim();
+                if (!learnData[dLearn]) {
+                    learnData[dLearn] = { names: [], count: 0 };
+                }
+                // 避免同一個人重複許願同一首舞時姓名重複列出
+                if (!learnData[dLearn].names.includes(userName)) {
+                    learnData[dLearn].names.push(userName);
+                }
+                learnData[dLearn].count++;
             }
+            
+            // 歸納教舞資料
+            if (item.wantToTeach && item.wantToTeach.trim() !== "") {
+                let dTeach = item.wantToTeach.trim();
+                if (!teachData[dTeach]) {
+                    teachData[dTeach] = { names: [] };
+                }
+                if (!teachData[dTeach].names.includes(userName)) {
+                    teachData[dTeach].names.push(userName);
+                }
+            }
+        });
+        
+        // 依據選取分頁產生列表
+        let displayList = [];
+        
+        if (currentTab === 'learn') {
+            for (let danceName in learnData) {
+                let isMatch = teachData.hasOwnProperty(danceName);
+                displayList.push({
+                    dance: danceName,
+                    namesStr: learnData[danceName].names.join('、'), // 💡 用頓號串聯多人姓名
+                    count: learnData[danceName].count,
+                    isMatch: isMatch
+                });
+            }
+            // 學舞按照票數由多到少排序
+            displayList.sort((a, b) => b.count - a.count);
+            
+        } else {
+            for (let danceName in teachData) {
+                let isMatch = learnData.hasOwnProperty(danceName);
+                displayList.push({
+                    dance: danceName,
+                    namesStr: teachData[danceName].names.join('、'), // 💡 用頓號串聯多人姓名
+                    count: 0, // 教舞不呈現計數
+                    isMatch: isMatch
+                });
+            }
+            // 教舞按照舞名筆劃排序（或可維持預設）
+            displayList.sort((a, b) => a.dance.localeCompare(b.dance, 'zh-Hant'));
         }
         
+        if (displayList.length === 0) {
+            let emptyMsg = currentTab === 'learn' ? '目前尚無學舞許願資料。' : '目前尚無教舞許願資料。';
+            rankingBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">' + emptyMsg + '</td></tr>';
+            loadingText.style.display = "none";
+            rankingTable.style.display = "table";
+            return;
+        }
+        
+        // 渲染生成表格
         displayList.forEach((item, index) => {
             const row = document.createElement("tr");
             let danceClass = item.isMatch ? "match-dance" : "";
-            let countLabel = currentTab === 'learn' ? item.count + ' 票' : '已就緒';
             
-            // 💡 修正 3：精準拼接字串，並把外洩的 HTML 三角括號角標（<td> 與 </td>）全部補回來！
-            row.innerHTML =
+            // 建立標準的四欄位架構，並依據分頁隱藏最後一欄
+            let htmlContent = 
                 '<td class="rank-num">' + (index + 1) + '</td>' +
                 '<td class="dance-name-cell ' + danceClass + '">' + item.dance + '</td>' +
-                '<td class="vote-count">' + countLabel + '</td>';
+                '<td style="color: #555; font-size: 14px;">' + item.namesStr + '</td>';
                 
+            if (currentTab === 'learn') {
+                htmlContent += '<td class="vote-count">' + item.count + ' 票</td>';
+            } else {
+                htmlContent += '<td class="vote-count" style="display:none;"></td>';
+            }
+            
+            row.innerHTML = htmlContent;
             rankingBody.appendChild(row);
         });
         
@@ -398,3 +468,4 @@
         rankingTable.style.display = "table";
     }
 </script>
+
