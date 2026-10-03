@@ -131,21 +131,34 @@
             background: #2980b9; 
             color: white;
         }
+
+        .ranking-scroll-container {
+            max-height: 380px; 
+            overflow-y: auto;   
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            -webkit-overflow-scrolling: touch; 
+        }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
+            margin-top: 0;
         }
         th, td {
             padding: 12px 6px; 
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
+        
         th {
             background-color: #f2f2f2;
             color: #2c3e50;
             font-size: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: inset 0 -1px 0 #ddd; 
         }
         tr:nth-child(even) { background-color: #fafafa; }
         
@@ -167,13 +180,6 @@
         
         .match-dance {
             color: #e74c3c;
-            font-weight: bold;
-        }
-
-        .vote-count {
-            text-align: right;
-            white-space: nowrap; 
-            width: 60px; 
             font-weight: bold;
         }
 
@@ -235,19 +241,21 @@
 
         <div id="loadingText" class="loading">排行榜資料載入中...</div>
         
-        <table id="rankingTable" style="display: none;">
-            <thead>
-                <tr>
-                    <th class="rank-num">排名</th>
-                    <th class="dance-title-th">舞名(紅字表示許願成真)</th>
-                    <th id="nameHeader" style="min-width: 90px;">許願者</th>
-                    <th class="vote-count" id="countHeader">熱度</th>
-                </tr>
-            </thead>
-            <tbody id="rankingBody">
-                <!-- 資料會由 JavaScript 自動生成 -->
-            </tbody>
-        </table>
+        <div id="scrollContainer" class="ranking-scroll-container" style="display: none;">
+            <table id="rankingTable">
+                <thead>
+                    <!-- 💡 優化：表格頂部完全精簡為名次、舞名、人員三欄，去除票數標題 -->
+                    <tr>
+                        <th class="rank-num">熱度</th>
+                        <th class="dance-title-th">舞名(紅字表示許願成真)</th>
+                        <th id="nameHeader">許願者</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingBody">
+                    <!-- 資料會由 JavaScript 自動生成 -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 <script>
@@ -266,7 +274,7 @@
         formContainer.classList.toggle("open");
         if (formContainer.classList.contains("open")) {
             toggleFormBtn.innerText = "❌ 收起表單";
-            toggleFormBtn.style.backgroundColor = "#7f8c8d"; 
+            toggleFormBtn.style.backgroundColor = "#2e7d32"; 
         } else {
             toggleFormBtn.innerText = "🪙 投幣許願";
             toggleFormBtn.style.backgroundColor = "#2980b9";
@@ -305,7 +313,7 @@
             document.getElementById("wantToLearn").value = "";
             document.getElementById("wantToTeach").value = "";
             submitBtn.disabled = false;
-            submitBtn.innerText = " ⛲ 投入許願池";
+            submitBtn.innerText = "⛲ 投入許願池";
             formContainer.classList.remove("open");
             toggleFormBtn.innerText = "🪙 投幣許願";
             toggleFormBtn.style.backgroundColor = "#2980b9";
@@ -321,10 +329,10 @@
 
     function fetchRanking() {
         const loadingText = document.getElementById("loadingText");
-        const rankingTable = document.getElementById("rankingTable");
+        const scrollContainer = document.getElementById("scrollContainer");
 
         loadingText.style.display = "block";
-        rankingTable.style.display = "none";
+        scrollContainer.style.display = "none";
 
         fetch(GAS_URL)
         .then(response => response.json())
@@ -345,22 +353,14 @@
         document.getElementById('teachTabBtn').classList.toggle('active', tab === 'teach');
         
         const nameHeader = document.getElementById('nameHeader');
-        const countHeader = document.getElementById('countHeader');
-        
-        if (tab === 'learn') {
-            nameHeader.innerText = "許願者";
-            countHeader.style.display = "table-cell"; 
-        } else {
-            nameHeader.innerText = "教舞老師";
-            countHeader.style.display = "none";       
-        }
+        nameHeader.innerText = tab === 'learn' ? "許願者" : "教舞老師";
         
         renderTable();
     }
 
     function renderTable() {
         const loadingText = document.getElementById("loadingText");
-        const rankingTable = document.getElementById("rankingTable");
+        const scrollContainer = document.getElementById("scrollContainer");
         const rankingBody = document.getElementById("rankingBody");
         rankingBody.innerHTML = "";
         
@@ -412,10 +412,11 @@
                 displayList.push({
                     dance: danceName,
                     namesStr: learnData[danceName].names.join('、'), 
-                    count: learnData[danceName].count,
+                    count: learnData[danceName].count, // 💡 後台保留累計數據，用來作權重排序
                     isMatch: isMatch
                 });
             }
+            // 💡 排序機制原封不動：依然按照票數由多到少默默排好名次
             displayList.sort((a, b) => b.count - a.count);
             
         } else {
@@ -433,34 +434,32 @@
         
         if (displayList.length === 0) {
             let emptyMsg = currentTab === 'learn' ? '目前尚無學舞許願資料。' : '目前尚無教舞願望資料。';
-            rankingBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">' + emptyMsg + '</td></tr>';
+            rankingBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#7f8c8d; font-style:italic; padding:20px;">' + emptyMsg + '</td></tr>';
             loadingText.style.display = "none";
-            rankingTable.style.display = "table";
+            scrollContainer.style.display = "block";
             return;
         }
+
+        const maxDisplay = 15;
+        const displayData = displayList.slice(0, maxDisplay);
         
-        displayList.forEach((item, index) => {
+        displayData.forEach((item, index) => {
             const row = document.createElement("tr");
             let danceClass = item.isMatch ? "match-dance" : "";
             
-            let htmlContent = 
+            // 💡 終極優化：不論是學舞還是教舞，前台全部統一輸出為最乾淨的三欄結構（名次、舞名、姓名）
+            row.innerHTML = 
                 '<td class="rank-num">' + (index + 1) + '</td>' +
                 '<td class="dance-name-cell ' + danceClass + '">' + item.dance + '</td>' +
                 '<td style="color: #555; font-size: 14px;">' + item.namesStr + '</td>';
-                
-            if (currentTab === 'learn') {
-                htmlContent += '<td class="vote-count">' + item.count + ' 票</td>';
-            } else {
-                htmlContent += '<td class="vote-count" style="display:none;"></td>';
-            }
             
-            row.innerHTML = htmlContent;
             rankingBody.appendChild(row);
         });
         
         loadingText.style.display = "none";
-        rankingTable.style.display = "table";
+        scrollContainer.style.display = "block";
     }
 </script>
 </body>
 </html>
+
